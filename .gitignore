@@ -14,3 +14,5 @@
 /npmDist
 /denoDist
 /websiteDist
+dist/
+.zsh_history

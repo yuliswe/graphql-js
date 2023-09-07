@@ -6,9 +6,10 @@
     "target": "es2019",
     "strict": true,
     "useUnknownInCatchVariables": false,
-    "noEmit": true,
+    "outDir": "dist",
     "isolatedModules": true,
-    "importsNotUsedAsValues": "error",
-    "forceConsistentCasingInFileNames": true
+    "forceConsistentCasingInFileNames": true,
+    "sourceMap": true,
+    "sourceRoot": "/Users/yu/lab/graphql-js/src"
   }
 }
