@@ -9,7 +9,7 @@ import { memoize3 } from '../jsutils/memoize3';
 import type { ObjMap } from '../jsutils/ObjMap';
 import type { Path } from '../jsutils/Path';
 import { addPath, pathToArray } from '../jsutils/Path';
-import { promiseForObject } from '../jsutils/promiseForObject';
+import { MultipleErrors, promiseForObject } from '../jsutils/promiseForObject';
 import type { PromiseOrValue } from '../jsutils/PromiseOrValue';
 import { promiseReduce } from '../jsutils/promiseReduce';
 
@@ -18,6 +18,7 @@ import { GraphQLError } from '../error/GraphQLError';
 import { locatedError } from '../error/locatedError';
 
 import type {
+  ASTNode,
   DocumentNode,
   FieldNode,
   FragmentDefinitionNode,
@@ -200,17 +201,24 @@ export function execute(args: ExecutionArgs): PromiseOrValue<ExecutionResult> {
     const { operation } = exeContext;
     const result = executeOperation(exeContext, operation, rootValue);
     if (isPromise(result)) {
-      return result.then(
-        (data) => buildResponse(data, exeContext.errors),
-        (error) => {
-          exeContext.errors.push(error);
+      return result
+        .then((data) => buildResponse(data, exeContext.errors))
+        .catch((error) => {
+          if (error instanceof MultipleErrors) {
+            exeContext.errors.push(...error.errors);
+          } else {
+            exeContext.errors.push(error);
+          }
           return buildResponse(null, exeContext.errors);
-        },
-      );
+        });
     }
     return buildResponse(result, exeContext.errors);
   } catch (error) {
-    exeContext.errors.push(error);
+    if (error instanceof MultipleErrors) {
+      exeContext.errors.push(...error.errors);
+    } else {
+      exeContext.errors.push(error);
+    }
     return buildResponse(null, exeContext.errors);
   }
 }
@@ -550,15 +558,25 @@ function executeField(
     if (isPromise(completed)) {
       // Note: we don't rely on a `catch` method, but we do expect "thenable"
       // to take a second callback for the error case.
-      return completed.then(undefined, (rawError) => {
-        const error = locatedError(rawError, fieldNodes, pathToArray(path));
-        return handleFieldError(error, returnType, exeContext);
-      });
+      return completed.then(undefined, (rawError) =>
+        locateAndHandleFieldErrors(
+          rawError,
+          returnType,
+          exeContext,
+          fieldNodes,
+          pathToArray(path),
+        ),
+      );
     }
     return completed;
   } catch (rawError) {
-    const error = locatedError(rawError, fieldNodes, pathToArray(path));
-    return handleFieldError(error, returnType, exeContext);
+    return locateAndHandleFieldErrors(
+      rawError,
+      returnType,
+      exeContext,
+      fieldNodes,
+      pathToArray(path),
+    );
   }
 }
 
@@ -588,20 +606,27 @@ export function buildResolveInfo(
   };
 }
 
-function handleFieldError(
-  error: GraphQLError,
+function locateAndHandleFieldErrors(
+  rawError: unknown,
   returnType: GraphQLOutputType,
   exeContext: ExecutionContext,
-): null {
+  nodes: ASTNode | ReadonlyArray<ASTNode> | undefined | null,
+  path?: Maybe<ReadonlyArray<string | number>>,
+) {
+  const errors =
+    rawError instanceof MultipleErrors
+      ? rawError.errors.map((e) => locatedError(e, nodes, path))
+      : [locatedError(rawError, nodes, path)];
+
   // If the field type is non-nullable, then it is resolved without any
   // protection from errors, however it still properly locates the error.
   if (isNonNullType(returnType)) {
-    throw error;
+    throw new MultipleErrors(errors);
   }
 
   // Otherwise, error protection is applied, logging the error and resolving
   // a null value for this field if one is encountered.
-  exeContext.errors.push(error);
+  exeContext.errors.push(...errors);
   return null;
 }
 
@@ -767,23 +792,36 @@ function completeListValue(
         containsPromise = true;
         // Note: we don't rely on a `catch` method, but we do expect "thenable"
         // to take a second callback for the error case.
-        return completedItem.then(undefined, (rawError) => {
-          const error = locatedError(
+        return completedItem.then(undefined, (rawError) =>
+          locateAndHandleFieldErrors(
             rawError,
+            itemType,
+            exeContext,
             fieldNodes,
             pathToArray(itemPath),
-          );
-          return handleFieldError(error, itemType, exeContext);
-        });
+          ),
+        );
       }
       return completedItem;
     } catch (rawError) {
-      const error = locatedError(rawError, fieldNodes, pathToArray(itemPath));
-      return handleFieldError(error, itemType, exeContext);
+      return locateAndHandleFieldErrors(
+        rawError,
+        itemType,
+        exeContext,
+        fieldNodes,
+        pathToArray(itemPath),
+      );
     }
   });
 
-  return containsPromise ? Promise.all(completedResults) : completedResults;
+  return containsPromise
+    ? Promise.all(completedResults).catch((error) => {
+        if (error instanceof MultipleErrors) {
+          throw new MultipleErrors(error.errors.flat());
+        }
+        throw error;
+      })
+    : completedResults;
 }
 
 /**
