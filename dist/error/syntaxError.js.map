@@ -1,0 +1,1 @@
+{"version":3,"file":"syntaxError.js","sourceRoot":"/Users/yu/lab/graphql-js/src/","sources":["error/syntaxError.ts"],"names":[],"mappings":";;;AAEA,iDAA8C;AAE9C;;;GAGG;AACH,SAAgB,WAAW,CACzB,MAAc,EACd,QAAgB,EAChB,WAAmB;IAEnB,OAAO,IAAI,2BAAY,CAAC,iBAAiB,WAAW,EAAE,EAAE;QACtD,MAAM;QACN,SAAS,EAAE,CAAC,QAAQ,CAAC;KACtB,CAAC,CAAC;AACL,CAAC;AATD,kCASC"}

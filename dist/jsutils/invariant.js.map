@@ -1,0 +1,1 @@
+{"version":3,"file":"invariant.js","sourceRoot":"/Users/yu/lab/graphql-js/src/","sources":["jsutils/invariant.ts"],"names":[],"mappings":";;;AAAA,SAAgB,SAAS,CACvB,SAAkB,EAClB,OAAgB;IAEhB,MAAM,gBAAgB,GAAG,OAAO,CAAC,SAAS,CAAC,CAAC;IAC5C,IAAI,CAAC,gBAAgB,EAAE;QACrB,MAAM,IAAI,KAAK,CACb,OAAO,IAAI,IAAI,CAAC,CAAC,CAAC,OAAO,CAAC,CAAC,CAAC,iCAAiC,CAC9D,CAAC;KACH;AACH,CAAC;AAVD,8BAUC"}

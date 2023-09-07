@@ -1,0 +1,1 @@
+{"version":3,"file":"isIterableObject.js","sourceRoot":"/Users/yu/lab/graphql-js/src/","sources":["jsutils/isIterableObject.ts"],"names":[],"mappings":";;;AAAA;;;;;;;;;;;;;;;;GAgBG;AACH,SAAgB,gBAAgB,CAC9B,aAAkB;IAElB,OAAO,CACL,OAAO,aAAa,KAAK,QAAQ;QACjC,OAAO,CAAA,aAAa,aAAb,aAAa,uBAAb,aAAa,CAAG,MAAM,CAAC,QAAQ,CAAC,CAAA,KAAK,UAAU,CACvD,CAAC;AACJ,CAAC;AAPD,4CAOC"}

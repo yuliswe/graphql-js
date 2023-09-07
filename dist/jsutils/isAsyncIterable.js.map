@@ -1,0 +1,1 @@
+{"version":3,"file":"isAsyncIterable.js","sourceRoot":"/Users/yu/lab/graphql-js/src/","sources":["jsutils/isAsyncIterable.ts"],"names":[],"mappings":";;;AAAA;;;GAGG;AACH,SAAgB,eAAe,CAC7B,kBAAuB;IAEvB,OAAO,OAAO,CAAA,kBAAkB,aAAlB,kBAAkB,uBAAlB,kBAAkB,CAAG,MAAM,CAAC,aAAa,CAAC,CAAA,KAAK,UAAU,CAAC;AAC1E,CAAC;AAJD,0CAIC"}
